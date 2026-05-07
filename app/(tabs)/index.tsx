@@ -1,25 +1,32 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import React from 'react';
+import { router } from 'expo-router';
 
-const DashboardCard = ({ title, icon, color }) => (
-  <TouchableOpacity style={[styles.card, { backgroundColor: color }]} activeOpacity={0.8}>
+const DashboardCard = ({ title, icon, color, path }) => {
+function goTo (path) {
+    router.push(path)
+  }
+  return (
+  <TouchableOpacity style={[styles.card, { backgroundColor: color }]} activeOpacity={0.8} onPress={()=>goTo(path)}>
     <Text style={styles.cardIcon}>{icon}</Text>
     <Text style={styles.cardTitle}>{title}</Text>
   </TouchableOpacity>
-);
+)};
 
 const index = () => {
   const menuItems = [
-    { title: 'Business Information', icon: '🏢', color: '#E6F7FF' },
-    { title: 'Stock', icon: '📦', color: '#E0F7FA' },
-    { title: 'Employees', icon: '👥', color: '#B2EBF2' },
-    { title: 'Sales', icon: '📈', color: '#80DEEA' },
-    { title: 'Orders', icon: '🛒', color: '#4DD0E1' },
-    { title: 'Wasooli', icon: '💰', color: '#26C6DA' },
-    { title: 'Cashouts', icon: '💵', color: '#00BCD4' },
-    { title: 'Vehicles', icon: '🚚', color: '#00ACC1' },
-    { title: 'Other Expenses', icon: '📊', color: '#0097A7' },
+    { title: 'Business Information', icon: '🏢', color: '#E6F7FF',path: '/bsns-info' },
+    { title: 'Stock', icon: '📦', color: '#E0F7FA', path:'asd' },
+    { title: 'Employees', icon: '👥', color: '#B2EBF2', path:'asd' },
+    { title: 'Sales', icon: '📈', color: '#80DEEA', path:'asd' },
+    { title: 'Orders', icon: '🛒', color: '#4DD0E1', path:'asd' },
+    { title: 'Wasooli', icon: '💰', color: '#26C6DA', path:'asd' },
+    { title: 'Cashouts', icon: '💵', color: '#00BCD4', path:'asd' },
+    { title: 'Vehicles', icon: '🚚', color: '#00ACC1', path:'asd' },
+    { title: 'Other Expenses', icon: '📊', color: '#0097A7', path:'asd' },
   ];
+
+  
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -48,6 +55,7 @@ const index = () => {
             title={item.title}
             icon={item.icon}
             color={item.color}
+            path={item.path}
           />
         ))}
       </View>

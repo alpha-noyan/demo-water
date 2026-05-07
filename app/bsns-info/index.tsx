@@ -1,24 +1,41 @@
 import { View, Text, TouchableOpacity, TextInput } from "react-native";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { router } from "expo-router";
+import { BsnsContext, useBsns } from "./context";
 
 const index = () => {
-  const [info, setInfo] = useState({
-    name: "Khattak Traders",
-    amount: 20,
+  const { info, popup, setPopup } = useContext(BsnsContext);
+  const [addingInfo, setAddingInfo] = useState({
+    name: "",
+    amount: 0,
   });
-  const [popup, setPopup] = useState(false);
+  function handleChange(field, value) {
+    setAddingInfo((prev) => ({
+      ...prev,
+      [field]: field === "amount" ? Number(value) : value,
+    }));
+  }
   return popup ? (
     <View>
       <Text>Add Cash</Text>
       <View>
         <Text>Name</Text>
-        <TextInput/>
+        <TextInput
+          onChangeText={(text) => handleChange("name", text)}
+          value={addingInfo.name}
+        />
       </View>
       <View>
         <Text>Amount</Text>
-        <TextInput/>
+        <TextInput
+          keyboardType="numeric"
+          onChangeText={(text) => handleChange("amount", text)}
+          value={String(addingInfo.amount)}
+        />
       </View>
+      <TouchableOpacity>
+        <Text>Add</Text>
+      </TouchableOpacity>
     </View>
   ) : (
     <View>
@@ -37,12 +54,14 @@ const index = () => {
       </View>
       <View>
         <View>
-          <TouchableOpacity onPress={()=>setPopup(true)}>
+          <TouchableOpacity onPress={() => setPopup(true)}>
             <Text>Add Cash</Text>
           </TouchableOpacity>
         </View>
         <View>
-          <TouchableOpacity onPress={()=>router.push('/bsns-info/transactions')}>
+          <TouchableOpacity
+            onPress={() => router.push("/bsns-info/transactions")}
+          >
             <Text>Transactions</Text>
           </TouchableOpacity>
         </View>

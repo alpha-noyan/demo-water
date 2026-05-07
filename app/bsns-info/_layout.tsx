@@ -1,15 +1,35 @@
 import { Stack } from "expo-router";
 import { BsnsProvider } from "./context";
 
-const _layout = () => {
+const BusinessInfoLayout = () => {
   return (
     <BsnsProvider>
       <Stack>
-        <Stack.Screen name="index" options={{ title:'Business Information' }} />
-        <Stack.Screen name="transactions" options={{ title:'Business Transactions' }} />
+        <Stack.Screen 
+          name="index" 
+          options={{ 
+            title: 'Business Information',
+            headerTitleStyle: {
+              fontWeight: '600',
+              color: '#2C3E50',
+            },
+            headerShadowVisible: false,
+          }} 
+        />
+        <Stack.Screen 
+          name="transactions" 
+          options={{ 
+            title: 'Transactions',
+            headerTitleStyle: {
+              fontWeight: '600',
+              color: '#2C3E50',
+            },
+            headerShadowVisible: false,
+          }} 
+        />
       </Stack>
     </BsnsProvider>
   );
 };
 
-export default _layout;
+export default BusinessInfoLayout;

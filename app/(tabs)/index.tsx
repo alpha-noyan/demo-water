@@ -17,7 +17,7 @@ const index = () => {
   const menuItems = [
     { title: 'Business Information', icon: '🏢', color: '#E6F7FF',path: '/bsns-info' },
     { title: 'Stock', icon: '📦', color: '#E0F7FA', path:'asd' },
-    { title: 'Employees', icon: '👥', color: '#B2EBF2', path:'asd' },
+    { title: 'Employees', icon: '👥', color: '#B2EBF2', path:'/employees' },
     { title: 'Sales', icon: '📈', color: '#80DEEA', path:'asd' },
     { title: 'Orders', icon: '🛒', color: '#4DD0E1', path:'asd' },
     { title: 'Wasooli', icon: '💰', color: '#26C6DA', path:'asd' },

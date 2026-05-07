@@ -1,11 +1,15 @@
-import { Stack } from 'expo-router'
+import { Stack } from "expo-router";
+import { BsnsProvider } from "./context";
 
 const _layout = () => {
   return (
-    <Stack>
-        <Stack.Screen name='index' options={{headerShown:false}} />
-    </Stack>
-  )
-}
+    <BsnsProvider>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="transactions" options={{ headerShown: false }} />
+      </Stack>
+    </BsnsProvider>
+  );
+};
 
-export default _layout
+export default _layout;

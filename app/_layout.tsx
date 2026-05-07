@@ -5,7 +5,7 @@ export default function RootLayout() {
   return (
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="bsns-info" />
+        <Stack.Screen name="bsns-info" options={{title:'Business Information'}}/>
       </Stack>
   );
 }

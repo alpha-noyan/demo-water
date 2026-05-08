@@ -37,11 +37,11 @@ const index = () => {
 
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>₨ 0</Text>
+          <Text style={styles.statValue}>₨ 75000</Text>
           <Text style={styles.statLabel}>Today's Sales</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValue}>0</Text>
+          <Text style={styles.statValue}>6</Text>
           <Text style={styles.statLabel}>Pending Orders</Text>
         </View>
       </View>

@@ -10,6 +10,7 @@ export default function RootLayout() {
         <Stack.Screen name='cashouts' options={{headerShown:false}}  />
         <Stack.Screen name='vehicles' options={{headerShown:false}}  />
         <Stack.Screen name='wasooli' options={{headerShown:false}}  />
+        <Stack.Screen name='other-expenses' options={{headerShown:false}}  />
       </Stack>
   );
 }

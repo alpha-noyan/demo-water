@@ -8,6 +8,8 @@ export default function RootLayout() {
         <Stack.Screen name="bsns-info" options={{headerShown:false}} />
         <Stack.Screen name='employees' options={{headerShown:false}} />
         <Stack.Screen name='cashouts' options={{headerShown:false}}  />
+        <Stack.Screen name='vehicles' options={{headerShown:false}}  />
+        <Stack.Screen name='wasooli' options={{headerShown:false}}  />
       </Stack>
   );
 }

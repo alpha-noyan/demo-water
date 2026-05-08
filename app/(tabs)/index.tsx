@@ -20,9 +20,9 @@ const index = () => {
     { title: 'Employees', icon: '👥', color: '#B2EBF2', path:'/employees' },
     { title: 'Sales', icon: '📈', color: '#80DEEA', path:'asd' },
     { title: 'Orders', icon: '🛒', color: '#4DD0E1', path:'asd' },
-    { title: 'Wasooli', icon: '💰', color: '#26C6DA', path:'asd' },
+    { title: 'Wasooli', icon: '💰', color: '#26C6DA', path:'/wasooli' },
     { title: 'Cashouts', icon: '💵', color: '#00BCD4', path:'/cashouts' },
-    { title: 'Vehicles', icon: '🚚', color: '#00ACC1', path:'asd' },
+    { title: 'Vehicles', icon: '🚚', color: '#00ACC1', path:'/vehicles' },
     { title: 'Other Expenses', icon: '📊', color: '#0097A7', path:'asd' },
   ];
 

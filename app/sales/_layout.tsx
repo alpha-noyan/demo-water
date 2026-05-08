@@ -6,6 +6,7 @@ const _layout = () => {
   return (
     <Stack>
         <Stack.Screen name='index' options={{ headerTitle: 'Sales' }} />
+        <Stack.Screen name='transactions' options={{ headerTitle: 'Transactions' }} />
     </Stack>
   )
 }

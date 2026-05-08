@@ -11,6 +11,9 @@ export default function RootLayout() {
         <Stack.Screen name='vehicles' options={{headerShown:false}}  />
         <Stack.Screen name='wasooli' options={{headerShown:false}}  />
         <Stack.Screen name='other-expenses' options={{headerShown:false}}  />
+        <Stack.Screen name='sales' options={{headerShown:false}}  />
+        <Stack.Screen name='stock' options={{headerShown:false}}  />
+        <Stack.Screen name='orders' options={{headerShown:false}}  />
       </Stack>
   );
 }

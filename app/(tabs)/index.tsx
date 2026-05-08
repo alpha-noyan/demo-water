@@ -16,10 +16,10 @@ function goTo (path) {
 const index = () => {
   const menuItems = [
     { title: 'Business Information', icon: '🏢', color: '#E6F7FF',path: '/bsns-info' },
-    { title: 'Stock', icon: '📦', color: '#E0F7FA', path:'asd' },
+    { title: 'Stock', icon: '📦', color: '#E0F7FA', path:'/stock' },
     { title: 'Employees', icon: '👥', color: '#B2EBF2', path:'/employees' },
-    { title: 'Sales', icon: '📈', color: '#80DEEA', path:'asd' },
-    { title: 'Orders', icon: '🛒', color: '#4DD0E1', path:'asd' },
+    { title: 'Sales', icon: '📈', color: '#80DEEA', path:'/sales' },
+    { title: 'Orders', icon: '🛒', color: '#4DD0E1', path:'/orders' },
     { title: 'Wasooli', icon: '💰', color: '#26C6DA', path:'/wasooli' },
     { title: 'Cashouts', icon: '💵', color: '#00BCD4', path:'/cashouts' },
     { title: 'Vehicles', icon: '🚚', color: '#00ACC1', path:'/vehicles' },

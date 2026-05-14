@@ -188,10 +188,10 @@ const EmployeeCard = ({ employee, onPress, onReleaseSalary }) => {
           <Ionicons name="cash-outline" size={16} color="#7F8C8D" />
           <Text style={styles.detailText}>Salary: ₨{employee.salary.toLocaleString()}</Text>
         </View>
-        <View style={styles.detailItem}>
+        {/* <View style={styles.detailItem}>
           <Ionicons name="time-outline" size={16} color="#7F8C8D" />
           <Text style={styles.detailText}>Pending: ₨{pendingSalary.toLocaleString()}</Text>
-        </View>
+        </View> */}
       </View>
 
       <View style={styles.cardActions}>
@@ -372,7 +372,7 @@ const index = () => {
       <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}><TouchableOpacity onPress={()=>router.push('/(tabs)')}> <Ionicons name="arrow-back-outline" size={24} color='black' /> </TouchableOpacity> Employees</Text>
+          <View style={styles.headerStyling}><TouchableOpacity onPress={()=>router.push('/(tabs)')}> <Ionicons name="arrow-back-outline" size={24} color='black' /> </TouchableOpacity> <Text style={styles.headerTitle}>Employees</Text></View>
           <View style={styles.headerActions}>
             <TouchableOpacity 
               style={styles.iconButton}
@@ -448,6 +448,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F4F9FD",
+  },
+  headerStyling: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12
   },
   header: {
     flexDirection: "row",

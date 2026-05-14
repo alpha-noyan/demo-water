@@ -90,7 +90,7 @@ export default function EmployeeDetails() {
         <View style={styles.infoRow}>
           <Ionicons name="calendar-outline" size={20} color="#7F8C8D" />
           <Text style={styles.infoLabel}>Joining Date:</Text>
-          <Text style={styles.infoValue}>{formatDate(employee.joiningDate)}</Text>
+          <Text style={styles.infoValue}>{formatDate(employee.date_of_joining)}</Text>
         </View>
       </View>
 

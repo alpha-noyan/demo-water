@@ -1,5 +1,6 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { Alert } from "react-native";
+import {createEmployee, fetchEmployees} from "../../db/employee_db";
 
 export const EmployeesContext = createContext();
 
@@ -10,9 +11,20 @@ export const EmployeesProvider = ({ children }) => {
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 
+  async function loadEmployeesFromDB() {
+    try {
+      const dbEmployees = await fetchEmployees();
+      console.log("Employees loaded from DB:", dbEmployees);
+      setEmployees(dbEmployees);
+    } catch (error) {
+      console.error("Error loading employees from DB:", error);
+    }
+  }
+
   // Load data on start
   useEffect(() => {
     loadData();
+    loadEmployeesFromDB();
   }, []);
 
   const loadData = async () => {
@@ -34,7 +46,7 @@ export const EmployeesProvider = ({ children }) => {
           address: "Street 12, Sector G-11, Islamabad",
           cnic: "12345-6789012-3",
           salary: 50000,
-          joiningDate: new Date().toISOString(),
+          date_of_joining: new Date().toISOString(),
           status: "active",
         }
       ];
@@ -53,18 +65,24 @@ export const EmployeesProvider = ({ children }) => {
     }
   };
 
-  const addEmployee = (employeeData) => {
+  const addEmployee = async (employeeData) => {
     const newEmployee = {
       id: Date.now(),
       ...employeeData,
-      joiningDate: new Date().toISOString(),
+      date_of_joining: new Date().toISOString(),
       status: "active",
       totalPaid: 0,
       lastPayment: null,
     };
-    
-    setEmployees(prev => [...prev, newEmployee]);
-    saveData();
+    try{
+      await createEmployee(newEmployee.name, newEmployee.fatherName, newEmployee.address, newEmployee.cnic, newEmployee.salary, newEmployee.phone_number);
+    }catch(error){
+      console.error("Error creating employee in DB:", error);
+      Alert.alert("Error", "Failed to add employee. Please try again.");
+      return false;
+    }
+    console.log("employeedata", employeeData);
+    await saveData();
     Alert.alert("Success", "Employee added successfully!");
     return true;
   };

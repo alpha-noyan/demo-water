@@ -85,7 +85,7 @@ const BusinessInfoScreen = () => {
           {/* Amount Section */}
           <View style={styles.amountContainer}>
             <Text style={styles.label}>Current Balance</Text>
-            <Text style={styles.amount}>{formatAmount(info.amount)}</Text>
+            <Text style={styles.amount}>{formatAmount(info?.current_amount)}</Text>
           </View>
         </View>
 

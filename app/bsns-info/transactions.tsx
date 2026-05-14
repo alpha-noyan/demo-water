@@ -4,7 +4,7 @@ import { useBsns } from './context';
 import { Ionicons } from '@expo/vector-icons';
 
 const TransactionsScreen = () => {
-  const { transactions, reverseTransaction, deleteTransaction, getTotalInvested, getTotalWithdrawn } = useBsns();
+  const { transactions, reverseTransaction, getTotalInvested, getTotalWithdrawn, totalPage, currentPage, setCurrentPage, fetchMoreTransactionsFromDB, loadingMore } = useBsns();
 
   const getStatusColor = (status) => {
     switch(status) {
@@ -73,13 +73,13 @@ const TransactionsScreen = () => {
             </TouchableOpacity>
           )}
           
-          <TouchableOpacity 
+          {/* <TouchableOpacity 
             style={styles.deleteButton}
             onPress={() => deleteTransaction(item.id)}
           >
             <Ionicons name="trash-outline" size={18} color="#E74C3C" />
             <Text style={styles.deleteButtonText}>Delete</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </View>
@@ -102,8 +102,8 @@ const TransactionsScreen = () => {
         </Text>
       </View>
       <View style={styles.summaryCard}>
-        <Text style={styles.summaryLabel}>Total Withdrawn</Text>
-        <Text style={[styles.summaryValue, styles.withdrawnValue]}>
+        <Text style={styles.summaryLabel}>Current Amount</Text>
+        <Text style={[styles.summaryValue, styles.investedValue]}>
           {formatAmount(getTotalWithdrawn())}
         </Text>
       </View>
@@ -121,7 +121,25 @@ const TransactionsScreen = () => {
         ListEmptyComponent={EmptyState}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        onEndReached={() => {
+          if(currentPage < totalPage) {
+            // fetch more transactions if available
+            // fetchTransactionsFromDB(); // Uncomment this line to enable pagination
+            console.log("Load more transactions..."); // Placeholder for pagination logic
+            fetchMoreTransactionsFromDB(currentPage + 1);
+            setCurrentPage(currentPage + 1);
+          }
+        }}
+        onEndReachedThreshold={0.5}
       />
+      {
+        loadingMore && (
+          <View style={{ padding: 16, alignItems: 'center' }}>
+            <Text style={{ color: '#7F8C8D' }}>Loading more transactions...</Text>
+          </View>
+        )
+      }
+
     </View>
   );
 };

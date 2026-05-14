@@ -1,6 +1,12 @@
 import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import {init} from '../db/init'
 
 export default function RootLayout() {
+
+  useEffect(()=>{
+    init();
+  },[])
 
   return (
       <Stack>

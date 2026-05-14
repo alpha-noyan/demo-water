@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { Alert } from "react-native";
+import {fetchInfo, updateInfo, makeTransaction, fetchTransaction, reverseTransactionn} from '../../db/info_db';
 
 export const BsnsContext = createContext();
 
@@ -8,14 +9,60 @@ export const BsnsProvider = ({ children }) => {
     name: "Khattak Traders",
     amount: 0,
     currency: "₨",
+    current_amount: 0,
   });
   const [transactions, setTransactions] = useState([]);
   const [popup, setPopup] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [totalPage,setTotalPage] = useState(1);
+  const [currentPage,setCurrentPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  async function infoFromDB () {
+    try{
+      const data = await fetchInfo();
+      console.log("Fetched info from DB:", data);
+      setInfo({
+        name: data.name || "Khattak Traders",
+        amount: data.amount || 0,
+        currency: "₨",
+        current_amount: data.current_amount || 0,
+      })
+    }catch (error){
+      console.error("Error fetching info from DB:", error);
+    }
+  }
+
+  async function fetchTransactionsFromDB (page = 1) {
+    try{
+      const data = await fetchTransaction(page);
+      console.log("Fetched transactions from DB:", data);
+      setTotalPage(data.totalPages);
+      setTransactions(data?.result || []);
+    }catch (error){
+      console.error("Error fetching transactions from DB:", error);
+    }
+  }
+
+  async function fetchMoreTransactionsFromDB (page = 1) {
+    try{
+      setLoadingMore(true);
+      const data = await fetchTransaction(page);
+      console.log("Fetched transactions from DB:", data);
+      setTotalPage(data.totalPages);
+      setTransactions(prev => [...prev, ...(data?.result || [])]);
+    }catch (error){
+      console.error("Error fetching transactions from DB:", error);
+    }finally {
+      setLoadingMore(false);
+    }
+  }
 
   // Load data from storage on start
   useEffect(() => {
     loadData();
+    infoFromDB();
+    fetchTransactionsFromDB(currentPage);
   }, []);
 
   const loadData = async () => {
@@ -32,16 +79,25 @@ export const BsnsProvider = ({ children }) => {
     }
   };
 
-  const saveData = async () => {
+  const saveData = async (name) => {
     try {
-      // Save to AsyncStorage
-      // await AsyncStorage.setItem('businessData', JSON.stringify({ info, transactions }));
+     await updateInfo(name);
     } catch (error) {
       console.error("Error saving data:", error);
     }
   };
 
-  function addAmount(amount, name, type = "invested") {
+  async function transaction(amount, name) {
+    try {
+      await makeTransaction(amount, name);
+      await fetchTransactionsFromDB(1);
+      setCurrentPage(1);
+    } catch (error) {
+      console.error("Error making transaction:", error);
+    }
+  }
+
+  async function addAmount(amount, name, type = "invested") {
     if (!amount || amount <= 0) {
       Alert.alert("Invalid Amount", "Please enter a valid amount");
       return false;
@@ -54,7 +110,8 @@ export const BsnsProvider = ({ children }) => {
 
     setInfo((it) => {
       const newAmount = it.amount + amount;
-      return { ...it, amount: newAmount };
+      const newCurrentAmount = it.current_amount + amount;
+      return { ...it, amount: newAmount, current_amount: newCurrentAmount };
     });
 
     const newTransaction = {
@@ -67,7 +124,7 @@ export const BsnsProvider = ({ children }) => {
     };
 
     setTransactions((it) => [newTransaction, ...it]);
-    saveData();
+    await transaction(amount, name.trim());
     Alert.alert("Success", `${amount} added successfully!`);
     return true;
   }
@@ -112,7 +169,7 @@ export const BsnsProvider = ({ children }) => {
     setInfo((it) => {
       return { ...it, name: name.trim() };
     });
-    saveData();
+    saveData(name.trim());
     Alert.alert("Success", "Business name updated!");
     return true;
   }
@@ -126,31 +183,17 @@ export const BsnsProvider = ({ children }) => {
         {
           text: "Reverse",
           style: "destructive",
-          onPress: () => {
-            const transaction = transactions.find(t => t.id === id);
-            if (transaction) {
-              if (transaction.type === "credit") {
-                // Remove added amount
-                setInfo((it) => ({
-                  ...it,
-                  amount: it.amount - transaction.amount
-                }));
-              } else {
-                // Add back withdrawn amount
-                setInfo((it) => ({
-                  ...it,
-                  amount: it.amount + transaction.amount
-                }));
+          onPress: async () => {
+            console.log("Reversing transaction with ID:", id);
+            await reverseTransactionn(id);
+            setTransactions((prev) => prev.map((item) => {
+              if (item.id === id) {
+                return { ...item, status: 'reversed' };
               }
-              
-              setTransactions((prev) =>
-                prev.map((item) =>
-                  item.id === id ? { ...item, status: "reversed", reversedAt: new Date().toISOString() } : item
-                )
-              );
-              saveData();
-              Alert.alert("Success", "Transaction reversed successfully!");
-            }
+              return item;
+            }));
+            await infoFromDB();
+            Alert.alert("Success", "Transaction reversed!");
           },
         },
       ]
@@ -177,15 +220,11 @@ export const BsnsProvider = ({ children }) => {
   }
 
   function getTotalInvested() {
-    return transactions
-      .filter(t => t.type === "credit" && t.status !== "reversed")
-      .reduce((sum, t) => sum + t.amount, 0);
+    return info.amount;
   }
 
   function getTotalWithdrawn() {
-    return transactions
-      .filter(t => t.type === "debit" && t.status !== "reversed")
-      .reduce((sum, t) => sum + t.amount, 0);
+    return info.current_amount;
   }
 
   return (
@@ -205,6 +244,11 @@ export const BsnsProvider = ({ children }) => {
         setIsEditing,
         getTotalInvested,
         getTotalWithdrawn,
+        totalPage,
+        currentPage,
+        setCurrentPage,
+        fetchMoreTransactionsFromDB,
+        loadingMore,
       }}
     >
       {children}

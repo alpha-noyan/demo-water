@@ -1,6 +1,6 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { Alert } from "react-native";
-import {createEmployee, fetchEmployees} from "../../db/employee_db";
+import {createEmployee, fetchEmployees, makeTransaction} from "../../db/employee_db";
 
 export const EmployeesContext = createContext();
 
@@ -75,7 +75,9 @@ export const EmployeesProvider = ({ children }) => {
       lastPayment: null,
     };
     try{
-      await createEmployee(newEmployee.name, newEmployee.fatherName, newEmployee.address, newEmployee.cnic, newEmployee.salary, newEmployee.phone_number);
+      console.log("Adding employee to DB:", newEmployee);
+      await createEmployee(newEmployee.name, newEmployee.fatherName, newEmployee.address, newEmployee.cnic, newEmployee.salary, newEmployee.phone);
+      setEmployees(prev => [...prev, newEmployee]);
     }catch(error){
       console.error("Error creating employee in DB:", error);
       Alert.alert("Error", "Failed to add employee. Please try again.");
@@ -117,7 +119,7 @@ export const EmployeesProvider = ({ children }) => {
     );
   };
 
-  const releaseSalary = (employeeId, amount, month, year) => {
+  const releaseSalary = async (employeeId, amount, month, year) => {
     const employee = employees.find(emp => emp.id === employeeId);
     
     if (!employee) {
@@ -130,34 +132,8 @@ export const EmployeesProvider = ({ children }) => {
       return false;
     }
 
-    const newTransaction = {
-      id: Date.now(),
-      employeeId: employeeId,
-      employeeName: employee.name,
-      amount: amount,
-      month: month,
-      year: year,
-      date: new Date().toISOString(),
-      type: "salary_release",
-      status: "completed",
-    };
+    await makeTransaction(employeeId, amount)
 
-    setTransactions(prev => [newTransaction, ...prev]);
-    
-    // Update employee's total paid
-    setEmployees(prev =>
-      prev.map(emp =>
-        emp.id === employeeId
-          ? {
-              ...emp,
-              totalPaid: (emp.totalPaid || 0) + amount,
-              lastPayment: new Date().toISOString(),
-            }
-          : emp
-      )
-    );
-    
-    saveData();
     Alert.alert("Success", `Salary of ${amount} released to ${employee.name}`);
     return true;
   };

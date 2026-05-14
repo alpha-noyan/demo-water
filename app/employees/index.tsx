@@ -227,10 +227,6 @@ const SalaryModal = ({ visible, employee, onClose, onRelease }) => {
       alert("Please enter a valid amount");
       return;
     }
-    if (releaseAmount > maxAmount) {
-      alert(`Amount cannot exceed pending salary of ₨${maxAmount}`);
-      return;
-    }
     onRelease(employee.id, releaseAmount, month, year);
     setAmount("");
     onClose();
@@ -257,9 +253,9 @@ const SalaryModal = ({ visible, employee, onClose, onRelease }) => {
             <Text style={styles.employeeInfoSalary}>
               Monthly Salary: ₨{employee.salary.toLocaleString()}
             </Text>
-            <Text style={styles.employeeInfoPending}>
+            {/* <Text style={styles.employeeInfoPending}>
               Pending: ₨{maxAmount.toLocaleString()}
-            </Text>
+            </Text> */}
           </View>
 
           <View style={styles.inputGroup}>
@@ -274,7 +270,7 @@ const SalaryModal = ({ visible, employee, onClose, onRelease }) => {
             />
           </View>
 
-          <View style={styles.inputGroup}>
+          {/* <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Month</Text>
             <View style={styles.pickerContainer}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -299,7 +295,7 @@ const SalaryModal = ({ visible, employee, onClose, onRelease }) => {
                 ))}
               </ScrollView>
             </View>
-          </View>
+          </View> */}
 
           <View style={styles.modalButtons}>
             <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
@@ -334,7 +330,7 @@ const index = () => {
 
   const handleAddEmployee = (employeeData) => {
     const salaryNum = parseFloat(employeeData.salary);
-    addEmployee({ ...employeeData, salary: salaryNum });
+    addEmployee({ ...employeeData });
   };
 
   const handleUpdateEmployee = (employeeData) => {

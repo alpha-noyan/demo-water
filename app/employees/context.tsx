@@ -25,9 +25,11 @@ export const EmployeesProvider = ({ children }) => {
 
   async function loadTransactionsFromDB () {
     try {
+      setCurrentPage(1); // Reset to first page when loading transactions
       const dbTransactions = await fetchEmployeeSalaries();
       console.log("Transactions loaded from DB:", dbTransactions);
       setTransactions(dbTransactions.salaries);
+      setTotalPages(dbTransactions.totalPages);
     }catch (error) {
       console.error("Error loading transactions from DB:", error);
     }
@@ -38,6 +40,7 @@ export const EmployeesProvider = ({ children }) => {
       const dbTransactions = await fetchEmployeeSalaries(currentPage);
       console.log("Transactions loaded from DB:", dbTransactions);
       setTransactions(prev => [...prev, ...dbTransactions.salaries]);
+      setTotalPages(dbTransactions.totalPages);
     }catch (error) {
       console.error("Error loading transactions from DB:", error);
     }

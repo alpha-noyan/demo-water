@@ -44,6 +44,7 @@ export async function fetchEmployeeSalaries ( page = 1) {
   try{
     const totalPages = await db.getFirstAsync(`SELECT  COUNT(*) as total FROM employee_salaries`);
     const limit = 10;
+    const totalPagesCount = Math.ceil(totalPages.total / limit);
     const offset = (page - 1) * limit;
     const salaries = await db.getAllAsync(`
       SELECT employee_salaries.*, employees.name as employee_name FROM employee_salaries
@@ -52,7 +53,7 @@ export async function fetchEmployeeSalaries ( page = 1) {
       LIMIT ${limit} OFFSET ${offset}
     ` );
     console.log("Fetched salaries :", "Page:", page, "Salaries:", salaries);
-    return { salaries, totalPages: totalPages };
+    return { salaries, totalPages: totalPagesCount };
   } catch (error) {
     console.error("Error fetching employee salaries:", error);
     return { salaries: [], totalPages: 0 };

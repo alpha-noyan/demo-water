@@ -40,15 +40,19 @@ export async function makeTransaction (employee_id, amount) {
   }
 }
 
-export async function fetchEmployeeSalaries (employee_id, page = 1) {
+export async function fetchEmployeeSalaries ( page = 1) {
   try{
-    const totalPages = await db.getFirstAsync(`SELECT  COUNT(*) as total FROM employee_salaries WHERE employee_id = ?`, [employee_id]);
+    const totalPages = await db.getFirstAsync(`SELECT  COUNT(*) as total FROM employee_salaries`);
     const limit = 10;
     const offset = (page - 1) * limit;
     const salaries = await db.getAllAsync(`
-      SELECT * FROM employee_salaries WHERE employee_id = ? ORDER BY date DESC LIMIT ${limit} OFFSET ${offset}
-    `, [employee_id]);
-    return { salaries, totalPages: totalPages.total };
+      SELECT employee_salaries.*, employees.name as employee_name FROM employee_salaries
+      JOIN employees ON employee_salaries.employee_id = employees.id
+      ORDER BY employee_salaries.date DESC
+      LIMIT ${limit} OFFSET ${offset}
+    ` );
+    console.log("Fetched salaries :", "Page:", page, "Salaries:", salaries);
+    return { salaries, totalPages: totalPages };
   } catch (error) {
     console.error("Error fetching employee salaries:", error);
     return { salaries: [], totalPages: 0 };

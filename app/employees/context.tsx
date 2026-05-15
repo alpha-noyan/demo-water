@@ -1,6 +1,6 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { Alert } from "react-native";
-import {createEmployee, fetchEmployees, makeTransaction} from "../../db/employee_db";
+import {createEmployee, fetchEmployees, makeTransaction, fetchEmployeeSalaries} from "../../db/employee_db";
 
 export const EmployeesContext = createContext();
 
@@ -10,6 +10,8 @@ export const EmployeesProvider = ({ children }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
 
   async function loadEmployeesFromDB() {
     try {
@@ -20,6 +22,27 @@ export const EmployeesProvider = ({ children }) => {
       console.error("Error loading employees from DB:", error);
     }
   }
+
+  async function loadTransactionsFromDB () {
+    try {
+      const dbTransactions = await fetchEmployeeSalaries();
+      console.log("Transactions loaded from DB:", dbTransactions);
+      setTransactions(dbTransactions.salaries);
+    }catch (error) {
+      console.error("Error loading transactions from DB:", error);
+    }
+  }
+
+  async function loadMoreTransactionsFromDB () {
+    try {
+      const dbTransactions = await fetchEmployeeSalaries(currentPage);
+      console.log("Transactions loaded from DB:", dbTransactions);
+      setTransactions(prev => [...prev, ...dbTransactions.salaries]);
+    }catch (error) {
+      console.error("Error loading transactions from DB:", error);
+    }
+  }
+
 
   // Load data on start
   useEffect(() => {
@@ -173,6 +196,11 @@ export const EmployeesProvider = ({ children }) => {
         getEmployeeTransactions,
         getTotalPaidToEmployee,
         getPendingSalary,
+        loadTransactionsFromDB,
+        loadMoreTransactionsFromDB,
+        totalPages,
+        currentPage,
+        setCurrentPage,
       }}
     >
       {children}

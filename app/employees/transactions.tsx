@@ -1,11 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import { useEmployees } from "./context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 
 const TransactionsScreen = () => {
-  const { transactions, employees } = useEmployees();
+  const { transactions, employees, loadTransactionsFromDB, totalPages, currentPage, setCurrentPage, loadMoreTransactionsFromDB } = useEmployees();
+
+  useEffect(() => {
+    loadTransactionsFromDB();
+  }, []);
 
   const getEmployeeName = (employeeId) => {
     const employee = employees.find(emp => emp.id === employeeId);
@@ -31,25 +35,25 @@ const TransactionsScreen = () => {
       <View style={styles.transactionHeader}>
         <View style={styles.employeeInfo}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{getEmployeeName(item.employeeId).charAt(0)}</Text>
+            <Text style={styles.avatarText}>{item.employee_name.charAt(0)}</Text>
           </View>
           <View>
-            <Text style={styles.employeeName}>{getEmployeeName(item.employeeId)}</Text>
+            <Text style={styles.employeeName}>{item.employee_name}</Text>
             <Text style={styles.transactionDate}>{formatDate(item.date)}</Text>
           </View>
         </View>
         <View style={styles.amountContainer}>
           <Text style={styles.amount}>-{formatAmount(item.amount)}</Text>
           <Text style={styles.month}>
-            {getMonthName(item.month)} {item.year}
+            {getMonthName(new Date(item.date).getMonth() + 1)} {new Date(item.date).getFullYear()}
           </Text>
         </View>
       </View>
-      <View style={styles.transactionFooter}>
+      {/* <View style={styles.transactionFooter}>
         <View style={styles.statusBadge}>
           <Text style={styles.statusText}>Salary Released</Text>
         </View>
-      </View>
+      </View> */}
     </View>
   );
 
@@ -64,7 +68,7 @@ const TransactionsScreen = () => {
   );
 
   const SummaryHeader = () => {
-    const totalReleased = transactions.reduce((sum, t) => sum + t.amount, 0);
+    const totalReleased = transactions?.reduce((sum, t) => sum + t.amount, 0);
     
     return (
       <View style={styles.summaryContainer}>
@@ -99,6 +103,13 @@ const TransactionsScreen = () => {
         ListEmptyComponent={EmptyState}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        onEndReached={() => {
+          if (currentPage < totalPages) {
+            loadMoreTransactionsFromDB(currentPage + 1);
+            setCurrentPage(prev => prev + 1);
+          }
+        }}
+        onEndReachedThreshold={0.5}
       />
     </View>
   );

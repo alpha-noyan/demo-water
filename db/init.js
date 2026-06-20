@@ -89,6 +89,12 @@ export const init = async () => {
                 FOREIGN KEY (employee_id) REFERENCES employees (id)
             );
 
+            CREATE TABLE IF NOT EXISTS raw_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                quantity INTEGER NOT NULL
+            );
+
             CREATE TRIGGER IF NOT EXISTS add_salary_amount
             AFTER INSERT ON employee_salaries
             BEGIN
@@ -107,6 +113,8 @@ export const init = async () => {
                     current_amount = current_amount + NEW.amount
                 WHERE id = 1;
             END;
+
+            
 
         `);
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   TextInput,
   Alert,
 } from "react-native";
+import { createRawItem, fetchRawItems, updateRawItem, deleteRawItem } from "../../db/stock";
 
 const Raw = () => {
   const [rawItems, setRawItems] = useState([
@@ -31,6 +32,23 @@ const Raw = () => {
     },
   ]);
 
+  useEffect(() => {
+    const loadRawItems = async () => {
+      try {
+        const items = await fetchRawItems();
+        setRawItems(items);
+      } catch (error) {
+        console.error("Error fetching raw items:", error);
+        Alert.alert(
+          "Error",
+          "An error occurred while fetching raw items."
+        );
+      }
+    };
+
+    loadRawItems();
+  }, []);
+
   // Add Modal
   const [addModalVisible, setAddModalVisible] =
     useState(false);
@@ -47,13 +65,15 @@ const Raw = () => {
     useState(null);
 
   const [editName, setEditName] = useState("");
+  const [editId, setEditId] = useState(null);
 
   const [editQuantity, setEditQuantity] =
     useState("");
 
   // Add Raw Item
-  const handleAddItem = () => {
-    if (!itemName.trim() || !quantity) {
+  const handleAddItem = async () => {
+    try {
+      if (!itemName.trim() || !quantity) {
       Alert.alert(
         "Missing Fields",
         "Please fill all fields."
@@ -61,6 +81,9 @@ const Raw = () => {
 
       return;
     }
+
+    
+      await createRawItem(itemName, Number(quantity));
 
     const newItem = {
       id: Date.now().toString(),
@@ -76,21 +99,36 @@ const Raw = () => {
     setAddModalVisible(false);
 
     Alert.alert("Success", "Raw item added.");
+
+    } catch (error) {
+      console.error("Error adding raw item:", error);
+      Alert.alert(
+        "Error",
+        "An error occurred while adding the raw item."
+      );
+    }
+
+    
   };
 
   // Open Edit Modal
   const handleEditOpen = (item) => {
     setSelectedItem(item);
 
+    console.log("Selected Item for Edit:", item);
+
     setEditName(item.name);
 
     setEditQuantity(item.quantity.toString());
+
+    setEditId(item.id);
 
     setEditModalVisible(true);
   };
 
   // Save Edit
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
+    try {
     if (!editName.trim() || !editQuantity) {
       Alert.alert(
         "Missing Fields",
@@ -99,6 +137,8 @@ const Raw = () => {
 
       return;
     }
+
+    await updateRawItem(editId, editName, Number(editQuantity));
 
     const updated = rawItems.map((item) =>
       item.id === selectedItem.id
@@ -114,20 +154,40 @@ const Raw = () => {
 
     setEditModalVisible(false);
 
+    setSelectedItem(null);
+    setEditName("");
+    setEditQuantity("");
+    setEditId(null);
+
     Alert.alert(
       "Updated",
       "Raw item updated successfully."
     );
+  } catch (error) {
+    console.error("Error updating raw item:", error);
+    Alert.alert(
+      "Error",
+      "An error occurred while updating the raw item."
+    );
   };
+}
 
   // Delete Item
-  const handleDelete = (id) => {
-    const updated = rawItems.filter(
-      (item) => item.id !== id
-    );
-
-    setRawItems(updated);
+  const handleDelete = async (id) => {
+    try {
+      await deleteRawItem(id);
+      const updated = rawItems.filter((item) => item.id !== id);
+      setRawItems(updated);
+    } catch (error) {
+      console.error("Error deleting raw item:", error);
+      Alert.alert(
+        "Error",
+        "An error occurred while deleting the raw item."
+      );
+    }
   };
+
+  
 
   return (
     <SafeAreaView style={styles.container}>

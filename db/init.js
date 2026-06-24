@@ -134,6 +134,43 @@ export const init = async () => {
                 FOREIGN KEY (stock_item_id) REFERENCES raw_items(id)
             );
 
+            CREATE TABLE IF NOT EXISTS ready_stock_item (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                quantity INTEGER NOT NULL,
+                reverse INTEGER NOT NULL DEFAULT 0,
+            );
+
+            CREATE TABLE IF NOT EXISTS ready_stock_raw_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ready_stock_item_id INTEGER NOT NULL,
+            raw_item_id INTEGER NOT NULL,
+            quantity INTEGER NOT NULL,
+            FOREIGN KEY (ready_stock_item_id) REFERENCES ready_stock_item(id),
+            FOREIGN KEY (raw_item_id) REFERENCES raw_items(id)
+            );
+
+            CREATE TRIGGER IF NOT EXISTS ready_stock_insert_update
+            AFTER INSERT ON ready_stock_raw_items
+            BEGIN
+                UPDATE raw_items
+                SET quantity = quantity - NEW.quantity  -- DECREASE for ready stock
+                WHERE id = NEW.raw_item_id;
+            END;
+
+            CREATE TRIGGER IF NOT EXISTS ready_stock_reverse_update
+            AFTER UPDATE OF reverse ON ready_stock_item
+            WHEN NEW.reverse = 1 AND OLD.reverse = 0
+            BEGIN
+                UPDATE raw_items
+                SET quantity = quantity + (
+                    SELECT quantity
+                    FROM ready_stock_raw_items
+                    WHERE ready_stock_item_id = NEW.id
+                )
+                WHERE id = NEW.id;
+            END;
+
             CREATE TRIGGER IF NOT EXISTS stock_inbound_insert_update
             AFTER INSERT ON stock_transactions_items
             BEGIN

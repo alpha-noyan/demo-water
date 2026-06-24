@@ -43,7 +43,7 @@ export async function deleteRawItem(id) {
   }
 }
 
-// CORRECTED: makeInboundTransaction using withTransactionAsync
+
 export async function makeInboundTransaction(items, amount) {
     console.log("makeInboundTransaction called with items:", items, "and amount:", amount);
   try {
@@ -204,5 +204,155 @@ export async function getStockTransactions() {
   } catch (error) {
     console.error("Error fetching transactions:", error);
     return [];
+  }
+}
+
+export async function makeStockItemTransaction(
+  name,
+  quantity,
+  rawItems
+) {
+  try {
+    if (!name?.trim()) {
+      throw new Error("Name is required");
+    }
+
+    if (!quantity || Number(quantity) <= 0) {
+      throw new Error("Quantity must be greater than 0");
+    }
+
+    if (!Array.isArray(rawItems) || rawItems.length === 0) {
+      throw new Error("Raw items are required");
+    }
+
+    return await db.withTransactionAsync(async () => {
+      const transactionResult = await db.runAsync(
+        `
+        INSERT INTO ready_stock_item
+        (name, quantity)
+        VALUES (?, ?)
+        `,
+        [name.trim(), Number(quantity)]
+      );
+
+      const readyStockId =
+        transactionResult.lastInsertRowId;
+
+      for (const item of rawItems) {
+        const rawItemId = Number(item.raw_item_id);
+        const rawQuantity = Number(item.quantity);
+
+        if (rawItemId <= 0 || rawQuantity <= 0) {
+          throw new Error("Invalid raw item");
+        }
+
+        await db.runAsync(
+          `
+          INSERT INTO ready_stock_raw_items
+          (
+            ready_stock_item_id,
+            raw_item_id,
+            quantity
+          )
+          VALUES (?, ?, ?)
+          `,
+          [readyStockId, rawItemId, rawQuantity]
+        );
+      }
+
+      return {
+        success: true,
+        readyStockId,
+      };
+    });
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function fetchStockItemById(id) {
+  try {
+    const stockItem = await db.getFirstAsync(
+      `
+      SELECT *
+      FROM ready_stock_item
+      WHERE id = ?
+      `,
+      [id]
+    );
+
+    if (!stockItem) {
+      return null;
+    }
+
+    const rawItems = await db.getAllAsync(
+      `
+      SELECT
+        rsri.id,
+        rsri.raw_item_id,
+        rsri.quantity,
+        r.name AS raw_item_name
+      FROM ready_stock_raw_items rsri
+      JOIN raw_items r
+        ON r.id = rsri.raw_item_id
+      WHERE rsri.ready_stock_item_id = ?
+      `,
+      [id]
+    );
+
+    return {
+      ...stockItem,
+      rawItems,
+    };
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function reverseStockItemTransaction(id) {
+  try {
+    const result = await db.runAsync(
+      `
+      UPDATE ready_stock_item
+      SET reverse = 1
+      WHERE id = ?
+      AND reverse = 0
+      `,
+      [id]
+    );
+
+    return result.changes > 0;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function deleteStockItemTransaction(id) {
+  try {
+    return await db.withTransactionAsync(async () => {
+      await db.runAsync(
+        `
+        DELETE FROM ready_stock_raw_items
+        WHERE ready_stock_item_id = ?
+        `,
+        [id]
+      );
+
+      await db.runAsync(
+        `
+        DELETE FROM ready_stock_item
+        WHERE id = ?
+        `,
+        [id]
+      );
+
+      return true;
+    });
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
 }

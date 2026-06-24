@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,16 +10,10 @@ import {
   FlatList,
   Alert,
 } from "react-native";
+import {fetchRawItems} from "../../db/stock"
 
 const Inbound = () => {
-  const rawItems = [
-    "Cap",
-    "Bottle",
-    "Label",
-    "Plastic Wrapper",
-    "Mineral Water",
-    "Carton",
-  ];
+  const [rawItems, setRawItems] = useState([]);
 
   const [selectedItems, setSelectedItems] =
     useState([]);
@@ -70,6 +64,23 @@ const Inbound = () => {
       [item]: value,
     });
   };
+
+  // fetch raw items
+  async function fetchItems() {
+    try{
+      const items = await fetchRawItems();
+      setRawItems(items);
+    } catch (error) {
+      console.error("Error fetching raw items:", error);
+      Alert.alert(
+        "Error",
+        "Failed to fetch raw items. Please try again later."
+      );
+    }
+  }
+  useEffect(() => {
+    fetchItems();
+  }, []);
 
   // Reset Form
   const resetForm = () => {

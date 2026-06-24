@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "demo-water",
-    "slug": "demo-water",
+    "name": "AquaLedger",
+    "slug": "AquaLedger",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "demowater",
+    "scheme": "aqualedger",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

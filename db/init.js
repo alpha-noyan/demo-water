@@ -4,6 +4,9 @@ export const init = async () => {
   try {
     await db.execAsync(`
 
+        -- drop whole database if needed
+        
+
             -- basic info section
 
             CREATE TABLE IF NOT EXISTS info (
@@ -131,35 +134,28 @@ export const init = async () => {
                 FOREIGN KEY (stock_item_id) REFERENCES raw_items(id)
             );
 
-            CREATE TRIGGER stock_insert_update
+            CREATE TRIGGER IF NOT EXISTS stock_inbound_insert_update
             AFTER INSERT ON stock_transactions_items
             BEGIN
                 UPDATE raw_items
-                SET quantity = quantity - NEW.amount
+                SET quantity = quantity + NEW.amount  -- INCREASE for inbound
                 WHERE id = NEW.stock_item_id;
             END;
 
-            CREATE TRIGGER info_insert_update
-            AFTER INSERT ON stock_transactions_items
+            CREATE TRIGGER IF NOT EXISTS info_inbound_insert_update
+            AFTER INSERT ON stock_transactions
             BEGIN
                 UPDATE info
-                SET current_amount = current_amount + (
-                    SELECT CASE
-                        WHEN reversed = 0 THEN -NEW.amount
-                        ELSE NEW.amount
-                    END
-                    FROM stock_transactions
-                    WHERE id = NEW.transaction_id
-                )
+                SET current_amount = current_amount - NEW.amount
                 WHERE id = 1;
             END;
 
-            CREATE TRIGGER stock_reverse_update
+            CREATE TRIGGER IF NOT EXISTS stock_inbound_reverse_update
             AFTER UPDATE OF reversed ON stock_transactions
-            WHEN NEW.reversed = 1 AND OLD.reversed = 0
+            WHEN NEW.reverse = 1 AND OLD.reverse = 0
             BEGIN
                 UPDATE raw_items
-                SET quantity = quantity + (
+                    SET quantity = quantity - (
                     SELECT amount
                     FROM stock_transactions_items
                     WHERE transaction_id = NEW.id
@@ -167,21 +163,21 @@ export const init = async () => {
                 )
                 WHERE EXISTS (
                     SELECT 1
-                    FROM stock_transactions_items
+                FROM stock_transactions_items
                     WHERE transaction_id = NEW.id
                     AND stock_item_id = raw_items.id
                 );
             END;
 
-            CREATE TRIGGER info_reverse_update
+            CREATE TRIGGER IF NOT EXISTS info_inbound_reverse_update
             AFTER UPDATE OF reversed ON stock_transactions
-            WHEN NEW.reversed = 1 AND OLD.reversed = 0
+            WHEN NEW.reverse = 1 AND OLD.reverse = 0
             BEGIN
                 UPDATE info
                 SET current_amount = current_amount + (
-                    SELECT SUM(amount)
-                    FROM stock_transactions_items
-                    WHERE transaction_id = NEW.id
+                    SELECT amount
+                    FROM stock_transactions
+                    WHERE id = NEW.id
                 )
                 WHERE id = 1;
             END;

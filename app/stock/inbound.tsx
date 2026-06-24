@@ -10,64 +10,48 @@ import {
   FlatList,
   Alert,
 } from "react-native";
-import {fetchRawItems} from "../../db/stock"
+import { fetchRawItems, makeInboundTransaction } from "../../db/stock";
 
 const Inbound = () => {
   const [rawItems, setRawItems] = useState([]);
-
-  const [selectedItems, setSelectedItems] =
-    useState([]);
-
-  const [quantities, setQuantities] = useState(
-    {}
-  );
-
-  const [totalAmount, setTotalAmount] =
-    useState("");
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [quantities, setQuantities] = useState({});
+  const [totalAmount, setTotalAmount] = useState("");
 
   // Select / Unselect Items
   const toggleItem = (item) => {
-    const exists = selectedItems.includes(item);
+    const exists = selectedItems.some(
+      (selected) => selected.id === item.id
+    );
 
     if (exists) {
       setSelectedItems(
-        selectedItems.filter((i) => i !== item)
+        selectedItems.filter((selected) => selected.id !== item.id)
       );
 
-      const updatedQuantities = {
-        ...quantities,
-      };
-
-      delete updatedQuantities[item];
-
+      const updatedQuantities = { ...quantities };
+      delete updatedQuantities[item.id];
       setQuantities(updatedQuantities);
     } else {
-      setSelectedItems([
-        ...selectedItems,
-        item,
-      ]);
-
+      setSelectedItems([...selectedItems, item]);
       setQuantities({
         ...quantities,
-        [item]: "",
+        [item.id]: "",
       });
     }
   };
 
   // Handle Quantity Change
-  const handleQuantityChange = (
-    item,
-    value
-  ) => {
+  const handleQuantityChange = (itemId, value) => {
     setQuantities({
       ...quantities,
-      [item]: value,
+      [itemId]: value,
     });
   };
 
   // fetch raw items
   async function fetchItems() {
-    try{
+    try {
       const items = await fetchRawItems();
       setRawItems(items);
     } catch (error) {
@@ -78,6 +62,7 @@ const Inbound = () => {
       );
     }
   }
+
   useEffect(() => {
     fetchItems();
   }, []);
@@ -90,27 +75,25 @@ const Inbound = () => {
   };
 
   // Submit
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    try{
     if (selectedItems.length === 0) {
       Alert.alert(
         "No Items Selected",
         "Please select at least one raw item."
       );
-
       return;
     }
 
-    const hasEmptyQuantity =
-      selectedItems.some(
-        (item) => !quantities[item]
-      );
+    const hasEmptyQuantity = selectedItems.some(
+      (item) => !quantities[item.id]
+    );
 
     if (hasEmptyQuantity) {
       Alert.alert(
         "Missing Quantity",
         "Please enter quantities for all selected items."
       );
-
       return;
     }
 
@@ -119,27 +102,39 @@ const Inbound = () => {
         "Missing Amount",
         "Please enter total amount."
       );
-
       return;
     }
 
+    const itemsWithQuantities = selectedItems.map((item) => ({
+      ...item,
+      quantity: quantities[item.id],
+    }));
+
+    await makeInboundTransaction(itemsWithQuantities, totalAmount);
+
     const payload = {
       items: selectedItems.map((item) => ({
-        name: item,
-        quantity: quantities[item],
+        id: item.id,
+        name: item.name,
+        quantity: quantities[item.id],
       })),
       amount: totalAmount,
       date: new Date().toLocaleString(),
     };
 
     console.log("Inbound Data:", payload);
-
     Alert.alert(
       "Success",
       "Inbound stock submitted successfully."
     );
-
     resetForm();
+  } catch (error) {
+    console.error("Error submitting inbound stock:", error);
+    Alert.alert(
+      "Error",
+      "Failed to submit inbound stock. Please try again later."
+    );
+  }
   };
 
   return (
@@ -150,8 +145,29 @@ const Inbound = () => {
       />
 
       <FlatList
-        data={[]}
-        renderItem={null}
+        data={rawItems}
+        keyExtractor={(item) => item.id.toString()}
+        // renderItem={({ item }) => (
+        //   <TouchableOpacity
+        //     activeOpacity={0.8}
+        //     onPress={() => toggleItem(item)}
+        //     style={[
+        //       styles.itemButton,
+        //       selectedItems.some((selected) => selected.id === item.id) &&
+        //         styles.itemButtonActive,
+        //     ]}
+        //   >
+        //     <Text
+        //       style={[
+        //         styles.itemButtonText,
+        //         selectedItems.some((selected) => selected.id === item.id) &&
+        //           styles.itemButtonTextActive,
+        //       ]}
+        //     >
+        //       {item.name}
+        //     </Text>
+        //   </TouchableOpacity>
+        // )}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <>
@@ -174,31 +190,27 @@ const Inbound = () => {
 
               <View style={styles.itemsContainer}>
                 {rawItems.map((item) => {
-                  const active =
-                    selectedItems.includes(item);
+                  const active = selectedItems.some(
+                    (selected) => selected.id === item.id
+                  );
 
                   return (
                     <TouchableOpacity
-                      key={item}
+                      key={item.id}
                       activeOpacity={0.8}
-                      onPress={() =>
-                        toggleItem(item)
-                      }
+                      onPress={() => toggleItem(item)}
                       style={[
                         styles.itemButton,
-                        active &&
-                          styles.itemButtonActive,
+                        active && styles.itemButtonActive,
                       ]}
                     >
                       <Text
                         style={[
                           styles.itemButtonText,
-                          active &&
-                            styles
-                              .itemButtonTextActive,
+                          active && styles.itemButtonTextActive,
                         ]}
                       >
-                        {item}
+                        {item.name}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -214,24 +226,18 @@ const Inbound = () => {
                 </Text>
 
                 {selectedItems.map((item) => (
-                  <View
-                    key={item}
-                    style={styles.inputCard}
-                  >
+                  <View key={item.id} style={styles.inputCard}>
                     <Text style={styles.label}>
-                      {item}
+                      {item.name}
                     </Text>
 
                     <TextInput
-                      placeholder={`Enter ${item} quantity`}
+                      placeholder={`Enter ${item.name} quantity`}
                       placeholderTextColor="#94A3B8"
                       keyboardType="numeric"
-                      value={quantities[item]}
+                      value={quantities[item.id]}
                       onChangeText={(value) =>
-                        handleQuantityChange(
-                          item,
-                          value
-                        )
+                        handleQuantityChange(item.id, value)
                       }
                       style={styles.input}
                     />
